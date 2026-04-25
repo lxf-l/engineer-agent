@@ -1,0 +1,31 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+celery==5.3.6
+redis==5.0.1
+chromadb==0.4.22
+langchain==0.1.16
+langchain-community==0.0.34
+langchain-deepseek==0.1.0
+sentence-transformers==2.2.2
+pypdf==3.17.4
+python-docx==1.1.0
+pydantic-settings==2.1.0
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+sqlalchemy==2.0.25
+alembic==1.13.1
+PyYAML==6.0.1
+
+# Document Processing
+docx2txt==0.8
+
+# Embeddings
+pydantic==2.5.3
+
+# Database
+
+# Authentication
+
+# Utilities
+python-dotenv==1.0.0
+aiofiles==23.2.1

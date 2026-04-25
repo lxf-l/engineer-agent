@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: eng-ai-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - eng-ai-network
+    restart: unless-stopped
+
+  backend:
+    build: .
+    container_name: eng-ai-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - API_KEY=${API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+      - UPLOAD_DIR=/app/data/uploads
+      - DATABASE_URL=sqlite:////app/data/users.db
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - redis
+    networks:
+      - eng-ai-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        python init_db.py &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
+      "
+
+  celery-worker:
+    build: .
+    container_name: eng-ai-celery-worker
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - API_KEY=${API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+      - UPLOAD_DIR=/app/data/uploads
+      - DATABASE_URL=sqlite:////app/data/users.db
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - eng-ai-network
+    restart: unless-stopped
+    command: celery -A app.tasks.worker worker --loglevel=info --concurrency=2
+
+networks:
+  eng-ai-network:
+    driver: bridge
