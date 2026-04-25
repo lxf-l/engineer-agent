@@ -1,0 +1,133 @@
+# Engineering AI Agent - 配置文件模板
+# 复制此文件为 config.yaml 并根据需要修改配置
+
+# 大语言模型 (LLM) 配置
+llm:
+  # DeepSeek API 配置
+  deepseek:
+    model_name: "deepseek-coder"
+    api_key: "${DEEPSEEK_API_KEY}"  # 必须设置环境变量 DEEPSEEK_API_KEY
+    base_url: "https://api.deepseek.com/v1"
+    timeout: 30
+    max_retries: 3
+  
+  # 其他LLM配置（可选）
+  openai:
+    model_name: "gpt-4"
+    api_key: "${OPENAI_API_KEY}"  # 可选，设置环境变量 OPENAI_API_KEY
+    base_url: "https://api.openai.com/v1"
+    timeout: 30
+    max_retries: 3
+
+# 嵌入模型配置
+embedding:
+  model_name: "BAAI/bge-small-zh-v1.5"
+  device: "cpu"  # 可选: "cuda" for GPU
+  batch_size: 32
+  normalize_embeddings: true
+
+# 向量数据库配置
+vector_database:
+  chroma:
+    persist_directory: "${CHROMA_PERSIST_DIR:-./data/chroma}"
+    collection_name: "${CHROMA_COLLECTION_NAME:-engineering_docs}"
+    distance_metric: "cosine"
+    embedding_function: "default"
+
+# 关系型数据库配置
+database:
+  sqlite:
+    url: "${DATABASE_URL:-sqlite:///./data/users.db}"
+    echo: false
+    pool_size: 5
+    max_overflow: 10
+  
+  # PostgreSQL配置（生产环境推荐）
+  postgresql:
+    host: "${DB_HOST:-localhost}"
+    port: "${DB_PORT:-5432}"
+    database: "${DB_NAME:-engineering_ai}"
+    username: "${DB_USERNAME:-postgres}"
+    password: "${DB_PASSWORD}"  # 必须设置环境变量 DB_PASSWORD
+    ssl_mode: "prefer"
+  
+  # MySQL配置（生产环境可选）
+  mysql:
+    host: "${DB_HOST:-localhost}"
+    port: "${DB_PORT:-3306}"
+    database: "${DB_NAME:-engineering_ai}"
+    username: "${DB_USERNAME:-root}"
+    password: "${DB_PASSWORD}"  # 必须设置环境变量 DB_PASSWORD
+    charset: "utf8mb4"
+
+# Redis配置（用于Celery消息队列）
+redis:
+  url: "${REDIS_URL:-redis://localhost:6379/0}"
+  max_connections: 10
+  retry_on_timeout: true
+  health_check_interval: 30
+
+# 文件上传配置
+file_upload:
+  upload_directory: "${UPLOAD_DIR:-./data/uploads}"
+  allowed_extensions:
+    - ".pdf"
+    - ".docx"
+    - ".doc"
+    - ".txt"
+  max_file_size: 10485760  # 10MB in bytes
+  chunk_size: 600
+  chunk_overlap: 100
+
+# 应用安全配置
+security:
+  # 应用API Key（必须设置环境变量 API_KEY）
+  api_key: "${API_KEY}"
+  
+  # JWT配置（用于用户认证）
+  jwt:
+    secret_key: "${SECRET_KEY:-your-secret-key-change-in-production}"  # 建议设置环境变量 SECRET_KEY
+    algorithm: "HS256"
+    access_token_expire_minutes: 30
+    refresh_token_expire_days: 7
+  
+  # CORS配置
+  cors:
+    allow_origins:
+      - "*"  # 生产环境应限制为特定域名
+    allow_credentials: true
+    allow_methods:
+      - "*"
+    allow_headers:
+      - "*"
+
+# 服务器配置
+server:
+  host: "${HOST:-0.0.0.0}"
+  port: "${PORT:-8000}"
+  debug: "${DEBUG:-false}"
+  workers: 1
+
+# Celery配置
+celery:
+  broker_url: "${CELERY_BROKER_URL:-${REDIS_URL}}"
+  result_backend: "${CELERY_RESULT_BACKEND:-${REDIS_URL}}"
+  task_serializer: "json"
+  accept_content:
+    - "json"
+  result_serializer: "json"
+  timezone: "Asia/Shanghai"
+  enable_utc: true
+  worker_concurrency: 2
+
+# RAG配置
+rag:
+  top_k: "${RAG_TOP_K:-5}"
+  similarity_threshold: 0.7
+  max_context_length: 2000
+
+# 日志配置
+logging:
+  level: "${LOG_LEVEL:-INFO}"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "./logs/app.log"
